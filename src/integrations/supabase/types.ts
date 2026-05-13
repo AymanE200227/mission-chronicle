@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      destinations: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nom: string
+          poste: string
+          prenom: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string
+          id?: string
+          nom: string
+          poste?: string
+          prenom: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nom?: string
+          poste?: string
+          prenom?: string
+        }
+        Relationships: []
+      }
+      missions: {
+        Row: {
+          created_at: string
+          date: string
+          destination_id: string | null
+          destination_name: string
+          employee_id: string
+          id: string
+          mission: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          destination_id?: string | null
+          destination_name?: string
+          employee_id: string
+          id?: string
+          mission?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          destination_id?: string | null
+          destination_name?: string
+          employee_id?: string
+          id?: string
+          mission?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missions_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      years: {
+        Row: {
+          created_at: string
+          id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          year?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
