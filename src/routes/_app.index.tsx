@@ -1,10 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useEmployees, useEmployeeMutations, useMissions, type Employee } from "@/lib/store";
+import { useMembres, useMembreMutations, useMissions, type Membre } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { ArrowRight, Pencil, Plus, Search, Trash2, Users, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/_app/")({
@@ -12,17 +20,19 @@ export const Route = createFileRoute("/_app/")({
 });
 
 function AccueilPage() {
-  const { data: employees = [] } = useEmployees();
+  const { data: membres = [] } = useMembres();
   const { data: missions = [] } = useMissions();
-  const { remove } = useEmployeeMutations();
+  const { remove } = useMembreMutations();
   const [q, setQ] = useState("");
   const navigate = useNavigate();
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
-    if (!t) return employees;
-    return employees.filter((e) => e.nom.toLowerCase().includes(t) || e.prenom.toLowerCase().includes(t));
-  }, [employees, q]);
+    if (!t) return membres;
+    return membres.filter(
+      (e) => e.nom.toLowerCase().includes(t) || e.prenom.toLowerCase().includes(t),
+    );
+  }, [membres, q]);
 
   return (
     <div className="space-y-8">
@@ -30,18 +40,24 @@ function AccueilPage() {
         <div className="space-y-3 animate-fade-up">
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs text-gold-foreground backdrop-blur">
             <Users className="h-3.5 w-3.5" />
-            Annuaire des officiers
+            Annuaire des membres
           </div>
           <h1 className="text-5xl font-semibold tracking-tight">
             <span className="bg-royal bg-clip-text text-transparent">Accueil</span>
           </h1>
           <p className="text-muted-foreground max-w-xl">
-            Recherchez un officier par nom ou prénom, puis ouvrez son historique de missions par année.
+            Recherchez un membre par nom ou prénom, puis ouvrez son historique de missions par
+            année.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Stat label="Officiers" value={employees.length} icon={<Users className="h-4 w-4" />} />
-          <Stat label="Missions" value={missions.length} icon={<Briefcase className="h-4 w-4" />} accent />
+          <Stat label="Membres" value={membres.length} icon={<Users className="h-4 w-4" />} />
+          <Stat
+            label="Missions"
+            value={missions.length}
+            icon={<Briefcase className="h-4 w-4" />}
+            accent
+          />
         </div>
       </section>
 
@@ -56,10 +72,10 @@ function AccueilPage() {
               className="pl-9 h-10 bg-background/80"
             />
           </div>
-          <EmployeeDialog
+          <MembreDialog
             trigger={
               <Button size="sm" className="h-10 gap-1.5 bg-royal hover:opacity-90">
-                <Plus className="h-4 w-4" /> Nouvel officier
+                <Plus className="h-4 w-4" /> Nouveau membre
               </Button>
             }
           />
@@ -85,9 +101,13 @@ function AccueilPage() {
                   <td className="px-5 py-3.5">{e.nom}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex justify-end gap-1">
-                      <EmployeeDialog
-                        employee={e}
-                        trigger={<Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>}
+                      <MembreDialog
+                        membre={e}
+                        trigger={
+                          <Button size="icon" variant="ghost" className="h-8 w-8">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        }
                       />
                       <Button
                         size="icon"
@@ -100,7 +120,9 @@ function AccueilPage() {
                       <Button
                         size="icon"
                         className="h-8 w-8 group bg-royal hover:opacity-90"
-                        onClick={() => navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })}
+                        onClick={() =>
+                          navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })
+                        }
                         title="Voir les années"
                       >
                         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -112,7 +134,7 @@ function AccueilPage() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground">
-                    Aucun officier trouvé.
+                    Aucun membre trouvé.
                   </td>
                 </tr>
               )}
@@ -124,48 +146,78 @@ function AccueilPage() {
   );
 }
 
-function Stat({ label, value, icon, accent }: { label: string; value: number; icon: React.ReactNode; accent?: boolean }) {
+function Stat({
+  label,
+  value,
+  icon,
+  accent,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  accent?: boolean;
+}) {
   return (
     <div className={`glass-card rounded-xl px-4 py-2.5 ${accent ? "border-gold/40" : ""}`}>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">{icon}{label}</div>
-      <div className={`text-xl font-semibold tracking-tight tabular-nums ${accent ? "text-gold" : ""}`}>{value}</div>
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {icon}
+        {label}
+      </div>
+      <div
+        className={`text-xl font-semibold tracking-tight tabular-nums ${accent ? "text-gold" : ""}`}
+      >
+        {value}
+      </div>
     </div>
   );
 }
 
-function EmployeeDialog({ employee, trigger }: { employee?: Employee; trigger: React.ReactNode }) {
+function MembreDialog({ membre, trigger }: { membre?: Membre; trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { add, update } = useEmployeeMutations();
-  const initial = (): Omit<Employee, "id"> =>
-    employee ? { nom: employee.nom, prenom: employee.prenom, poste: employee.poste, email: employee.email } : { nom: "", prenom: "", poste: "", email: "" };
-  const [form, setForm] = useState<Omit<Employee, "id">>(initial);
+  const { add, update } = useMembreMutations();
+  const initial = (): Omit<Membre, "id"> =>
+    membre ? { nom: membre.nom, prenom: membre.prenom } : { nom: "", prenom: "" };
+  const [form, setForm] = useState<Omit<Membre, "id">>(initial);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setForm(initial()); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (o) setForm(initial());
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="glass-card">
         <DialogHeader>
-          <DialogTitle>{employee ? "Modifier l'officier" : "Nouvel officier"}</DialogTitle>
+          <DialogTitle>{membre ? "Modifier le membre" : "Nouveau membre"}</DialogTitle>
           <DialogDescription>Renseignez les informations ci-dessous.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Prénom"><Input value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} /></Field>
-          <Field label="Nom"><Input value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} /></Field>
-          <Field label="Grade / Poste" full><Input value={form.poste} onChange={(e) => setForm({ ...form, poste: e.target.value })} /></Field>
-          <Field label="Email" full><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+          <Field label="Prénom">
+            <Input
+              value={form.prenom}
+              onChange={(e) => setForm({ ...form, prenom: e.target.value })}
+            />
+          </Field>
+          <Field label="Nom">
+            <Input value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} />
+          </Field>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Annuler
+          </Button>
           <Button
             className="bg-royal hover:opacity-90"
             onClick={async () => {
               if (!form.nom || !form.prenom) return;
-              if (employee) await update.mutateAsync({ id: employee.id, ...form });
+              if (membre) await update.mutateAsync({ id: membre.id, ...form });
               else await add.mutateAsync(form);
               setOpen(false);
             }}
           >
-            {employee ? "Enregistrer" : "Ajouter"}
+            {membre ? "Enregistrer" : "Ajouter"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -173,7 +225,15 @@ function EmployeeDialog({ employee, trigger }: { employee?: Employee; trigger: R
   );
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
+function Field({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
   return (
     <div className={`space-y-1.5 ${full ? "col-span-2" : ""}`}>
       <Label className="text-xs">{label}</Label>

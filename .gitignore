@@ -16,9 +16,13 @@ dist-ssr
 .nitro
 *.local
 
-# Wrangler / Cloudflare
-.wrangler/
-.dev.vars
+# SQLite database
+data.db
+data.db-wal
+data.db-shm
+
+# Electron build output
+release/
 
 # Editor directories and files
 .vscode/*

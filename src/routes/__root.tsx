@@ -73,10 +73,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Missio — Gestion des missions" },
-      { name: "description", content: "Plateforme premium pour gérer les collaborateurs et leurs missions par année." },
+      {
+        name: "description",
+        content: "Centre sportif FAR — gestion des membres et leurs missions par année.",
+      },
       { name: "author", content: "Missio" },
       { property: "og:title", content: "Missio — Gestion des missions" },
-      { property: "og:description", content: "Plateforme premium pour gérer les collaborateurs et leurs missions par année." },
+      {
+        property: "og:description",
+        content: "Centre sportif FAR — gestion des membres et leurs missions par année.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
