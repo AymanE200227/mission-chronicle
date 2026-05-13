@@ -1,31 +1,35 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { Briefcase } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export function AppShell() {
   const location = useLocation();
+  const path = location.pathname;
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <Briefcase className="h-4.5 w-4.5" strokeWidth={2.25} />
-            </div>
+    <div className="min-h-screen flex flex-col">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/75 backdrop-blur-xl">
+        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-6 py-3">
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src={logo} alt="FAR" className="h-11 w-11 object-contain transition-transform group-hover:scale-105 drop-shadow" />
             <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight">Missio</div>
-              <div className="text-[11px] text-muted-foreground">Gestion des missions</div>
+              <div className="text-base font-semibold tracking-tight bg-royal bg-clip-text text-transparent">Missio FAR</div>
+              <div className="text-[11px] text-muted-foreground">Plateforme de gestion des missions</div>
             </div>
           </Link>
           <nav className="flex items-center gap-1 text-sm">
-            <NavLink to="/" label="Accueil" active={location.pathname === "/"} />
+            <NavLink to="/" label="Accueil" active={path === "/"} />
+            <NavLink to="/destinations" label="Destinations" active={path.startsWith("/destinations")} />
+            <NavLink to="/years" label="Années" active={path.startsWith("/years")} />
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-10">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-10 animate-fade-up">
         <Outlet />
       </main>
-      <footer className="mx-auto max-w-7xl px-6 py-8 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Missio — Plateforme premium de gestion des missions
+      <footer className="border-t border-border/60 bg-background/50 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-6 py-6 text-xs text-muted-foreground flex items-center justify-between">
+          <span>© {new Date().getFullYear()} Missio FAR — Plateforme premium</span>
+          <span className="text-gold">⭐ Royaume du Maroc</span>
+        </div>
       </footer>
     </div>
   );
@@ -35,8 +39,10 @@ function NavLink({ to, label, active }: { to: string; label: string; active: boo
   return (
     <Link
       to={to}
-      className={`rounded-md px-3 py-1.5 transition-colors ${
-        active ? "bg-secondary text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+      className={`relative rounded-md px-3.5 py-1.5 text-sm transition-all ${
+        active
+          ? "bg-royal text-primary-foreground shadow-elegant font-medium"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary/70"
       }`}
     >
       {label}
