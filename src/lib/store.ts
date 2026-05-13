@@ -1,103 +1,172 @@
-import { useSyncExternalStore } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
+export type Employee = { id: string; nom: string; prenom: string; poste: string; email: string };
+export type Destination = { id: string; name: string; category: string };
+export type YearRow = { id: string; year: number };
 export type Mission = {
   id: string;
-  employeeId: string;
-  date: string; // YYYY-MM-DD
-  destination: string;
-  objet: string;
+  employee_id: string;
+  destination_id: string | null;
+  destination_name: string;
+  mission: string;
+  date: string;
 };
 
-export type Employee = {
-  id: string;
-  nom: string;
-  prenom: string;
-  poste: string;
-  email: string;
-};
-
-type State = {
-  employees: Employee[];
-  missions: Mission[];
-};
-
-const KEY = "mission-app-v1";
-
-const seed: State = {
-  employees: [
-    { id: "e1", nom: "Benali", prenom: "Sara", poste: "Ingénieure", email: "s.benali@corp.io" },
-    { id: "e2", nom: "Haddad", prenom: "Youssef", poste: "Chef de projet", email: "y.haddad@corp.io" },
-    { id: "e3", nom: "Khelifi", prenom: "Amine", poste: "Analyste", email: "a.khelifi@corp.io" },
-    { id: "e4", nom: "Trabelsi", prenom: "Lina", poste: "Designer", email: "l.trabelsi@corp.io" },
-  ],
-  missions: [
-    { id: "m1", employeeId: "e1", date: "2026-02-12", destination: "Paris, France", objet: "Conférence tech" },
-    { id: "m2", employeeId: "e1", date: "2025-09-03", destination: "Berlin, Allemagne", objet: "Audit client" },
-    { id: "m3", employeeId: "e2", date: "2024-06-20", destination: "Tunis, Tunisie", objet: "Lancement produit" },
-    { id: "m4", employeeId: "e3", date: "2023-11-08", destination: "Dubai, EAU", objet: "Salon international" },
-    { id: "m5", employeeId: "e4", date: "2022-04-15", destination: "Madrid, Espagne", objet: "Workshop design" },
-    { id: "m6", employeeId: "e2", date: "2026-05-22", destination: "Casablanca, Maroc", objet: "Réunion partenaires" },
-  ],
-};
-
-function load(): State {
-  if (typeof window === "undefined") return seed;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return seed;
-    return JSON.parse(raw);
-  } catch {
-    return seed;
-  }
+// --- Employees ---
+export function useEmployees() {
+  return useQuery({
+    queryKey: ["employees"],
+    queryFn: async (): Promise<Employee[]> => {
+      const { data, error } = await supabase.from("employees").select("*").order("nom");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 }
 
-let state: State = load();
-const listeners = new Set<() => void>();
-
-function persist() {
-  if (typeof window !== "undefined") localStorage.setItem(KEY, JSON.stringify(state));
-  listeners.forEach((l) => l());
+export function useEmployeeMutations() {
+  const qc = useQueryClient();
+  const inv = () => qc.invalidateQueries({ queryKey: ["employees"] });
+  return {
+    add: useMutation({
+      mutationFn: async (e: Omit<Employee, "id">) => {
+        const { error } = await supabase.from("employees").insert(e);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    update: useMutation({
+      mutationFn: async ({ id, ...e }: Employee) => {
+        const { error } = await supabase.from("employees").update(e).eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    remove: useMutation({
+      mutationFn: async (id: string) => {
+        const { error } = await supabase.from("employees").delete().eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: () => {
+        inv();
+        qc.invalidateQueries({ queryKey: ["missions"] });
+      },
+    }),
+  };
 }
 
-export const store = {
-  getState: () => state,
-  subscribe: (l: () => void) => {
-    listeners.add(l);
-    return () => listeners.delete(l);
-  },
-  addEmployee: (e: Omit<Employee, "id">) => {
-    state = { ...state, employees: [...state.employees, { ...e, id: crypto.randomUUID() }] };
-    persist();
-  },
-  updateEmployee: (id: string, e: Omit<Employee, "id">) => {
-    state = { ...state, employees: state.employees.map((x) => (x.id === id ? { ...e, id } : x)) };
-    persist();
-  },
-  deleteEmployee: (id: string) => {
-    state = {
-      employees: state.employees.filter((x) => x.id !== id),
-      missions: state.missions.filter((m) => m.employeeId !== id),
-    };
-    persist();
-  },
-  addMission: (m: Omit<Mission, "id">) => {
-    state = { ...state, missions: [...state.missions, { ...m, id: crypto.randomUUID() }] };
-    persist();
-  },
-  updateMission: (id: string, m: Omit<Mission, "id">) => {
-    state = { ...state, missions: state.missions.map((x) => (x.id === id ? { ...m, id } : x)) };
-    persist();
-  },
-  deleteMission: (id: string) => {
-    state = { ...state, missions: state.missions.filter((x) => x.id !== id) };
-    persist();
-  },
-};
+// --- Destinations ---
+export function useDestinations() {
+  return useQuery({
+    queryKey: ["destinations"],
+    queryFn: async (): Promise<Destination[]> => {
+      const { data, error } = await supabase.from("destinations").select("*").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
 
-export function useStore<T>(selector: (s: State) => T): T {
-  return useSyncExternalStore(
-    store.subscribe,
-    () => selector(store.getState()),
-    () => selector(seed),
-  );
+export function useDestinationMutations() {
+  const qc = useQueryClient();
+  const inv = () => qc.invalidateQueries({ queryKey: ["destinations"] });
+  return {
+    add: useMutation({
+      mutationFn: async (d: Omit<Destination, "id">) => {
+        const { error } = await supabase.from("destinations").insert(d);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    update: useMutation({
+      mutationFn: async ({ id, ...d }: Destination) => {
+        const { error } = await supabase.from("destinations").update(d).eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    remove: useMutation({
+      mutationFn: async (id: string) => {
+        const { error } = await supabase.from("destinations").delete().eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+  };
+}
+
+// --- Years ---
+export function useYears() {
+  return useQuery({
+    queryKey: ["years"],
+    queryFn: async (): Promise<YearRow[]> => {
+      const { data, error } = await supabase.from("years").select("*").order("year", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useYearMutations() {
+  const qc = useQueryClient();
+  const inv = () => qc.invalidateQueries({ queryKey: ["years"] });
+  return {
+    add: useMutation({
+      mutationFn: async (year: number) => {
+        const { error } = await supabase.from("years").insert({ year });
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    remove: useMutation({
+      mutationFn: async (id: string) => {
+        const { error } = await supabase.from("years").delete().eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+  };
+}
+
+// --- Missions ---
+export function useMissions(opts?: { employeeId?: string }) {
+  return useQuery({
+    queryKey: ["missions", opts?.employeeId ?? "all"],
+    queryFn: async (): Promise<Mission[]> => {
+      let q = supabase.from("missions").select("*").order("date", { ascending: false });
+      if (opts?.employeeId) q = q.eq("employee_id", opts.employeeId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useMissionMutations() {
+  const qc = useQueryClient();
+  const inv = () => qc.invalidateQueries({ queryKey: ["missions"] });
+  return {
+    add: useMutation({
+      mutationFn: async (m: Omit<Mission, "id">) => {
+        const { error } = await supabase.from("missions").insert(m);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    update: useMutation({
+      mutationFn: async ({ id, ...m }: Mission) => {
+        const { error } = await supabase.from("missions").update(m).eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+    remove: useMutation({
+      mutationFn: async (id: string) => {
+        const { error } = await supabase.from("missions").delete().eq("id", id);
+        if (error) throw error;
+      },
+      onSuccess: inv,
+    }),
+  };
 }
