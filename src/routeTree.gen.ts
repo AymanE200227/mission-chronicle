@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppAnneesYearRouteImport } from './routes/_app.annees.$year'
 import { Route as AppAnneesEmployeeIdIndexRouteImport } from './routes/_app.annees.$employeeId.index'
 import { Route as AppAnneesEmployeeIdYearRouteImport } from './routes/_app.annees.$employeeId.$year'
 
@@ -21,6 +22,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnneesYearRoute = AppAnneesYearRouteImport.update({
+  id: '/annees/$year',
+  path: '/annees/$year',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAnneesEmployeeIdIndexRoute =
@@ -37,11 +43,13 @@ const AppAnneesEmployeeIdYearRoute = AppAnneesEmployeeIdYearRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/annees/$year': typeof AppAnneesYearRoute
   '/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/annees/$employeeId/': typeof AppAnneesEmployeeIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
+  '/annees/$year': typeof AppAnneesYearRoute
   '/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/annees/$employeeId': typeof AppAnneesEmployeeIdIndexRoute
 }
@@ -49,18 +57,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_app/': typeof AppIndexRoute
+  '/_app/annees/$year': typeof AppAnneesYearRoute
   '/_app/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/_app/annees/$employeeId/': typeof AppAnneesEmployeeIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/annees/$employeeId/$year' | '/annees/$employeeId/'
+  fullPaths:
+    | '/'
+    | '/annees/$year'
+    | '/annees/$employeeId/$year'
+    | '/annees/$employeeId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/annees/$employeeId/$year' | '/annees/$employeeId'
+  to:
+    | '/'
+    | '/annees/$year'
+    | '/annees/$employeeId/$year'
+    | '/annees/$employeeId'
   id:
     | '__root__'
     | '/_app'
     | '/_app/'
+    | '/_app/annees/$year'
     | '/_app/annees/$employeeId/$year'
     | '/_app/annees/$employeeId/'
   fileRoutesById: FileRoutesById
@@ -85,6 +103,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/annees/$year': {
+      id: '/_app/annees/$year'
+      path: '/annees/$year'
+      fullPath: '/annees/$year'
+      preLoaderRoute: typeof AppAnneesYearRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/annees/$employeeId/': {
       id: '/_app/annees/$employeeId/'
       path: '/annees/$employeeId'
@@ -104,12 +129,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
+  AppAnneesYearRoute: typeof AppAnneesYearRoute
   AppAnneesEmployeeIdYearRoute: typeof AppAnneesEmployeeIdYearRoute
   AppAnneesEmployeeIdIndexRoute: typeof AppAnneesEmployeeIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
+  AppAnneesYearRoute: AppAnneesYearRoute,
   AppAnneesEmployeeIdYearRoute: AppAnneesEmployeeIdYearRoute,
   AppAnneesEmployeeIdIndexRoute: AppAnneesEmployeeIdIndexRoute,
 }
