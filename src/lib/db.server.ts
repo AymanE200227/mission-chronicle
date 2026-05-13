@@ -45,7 +45,7 @@ function initSchema(db: Database.Database) {
       date TEXT NOT NULL,
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (membre_id) REFERENCES membres(id) ON DELETE CASCADE,
-      FOREIGN KEY (destination_id) REFERENCES destinations(id)
+      FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE SET NULL
     );
   `);
 }
