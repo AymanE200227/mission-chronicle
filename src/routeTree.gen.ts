@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppAnneesRouteImport } from './routes/_app.annees'
+import { Route as AppAnneesYearRouteImport } from './routes/_app.annees.$year'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -27,27 +28,35 @@ const AppAnneesRoute = AppAnneesRouteImport.update({
   path: '/annees',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAnneesYearRoute = AppAnneesYearRouteImport.update({
+  id: '/$year',
+  path: '/$year',
+  getParentRoute: () => AppAnneesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/annees': typeof AppAnneesRoute
+  '/annees': typeof AppAnneesRouteWithChildren
+  '/annees/$year': typeof AppAnneesYearRoute
 }
 export interface FileRoutesByTo {
-  '/annees': typeof AppAnneesRoute
+  '/annees': typeof AppAnneesRouteWithChildren
   '/': typeof AppIndexRoute
+  '/annees/$year': typeof AppAnneesYearRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/_app/annees': typeof AppAnneesRoute
+  '/_app/annees': typeof AppAnneesRouteWithChildren
   '/_app/': typeof AppIndexRoute
+  '/_app/annees/$year': typeof AppAnneesYearRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/annees'
+  fullPaths: '/' | '/annees' | '/annees/$year'
   fileRoutesByTo: FileRoutesByTo
-  to: '/annees' | '/'
-  id: '__root__' | '/_app' | '/_app/annees' | '/_app/'
+  to: '/annees' | '/' | '/annees/$year'
+  id: '__root__' | '/_app' | '/_app/annees' | '/_app/' | '/_app/annees/$year'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,16 +86,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnneesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/annees/$year': {
+      id: '/_app/annees/$year'
+      path: '/$year'
+      fullPath: '/annees/$year'
+      preLoaderRoute: typeof AppAnneesYearRouteImport
+      parentRoute: typeof AppAnneesRoute
+    }
   }
 }
 
+interface AppAnneesRouteChildren {
+  AppAnneesYearRoute: typeof AppAnneesYearRoute
+}
+
+const AppAnneesRouteChildren: AppAnneesRouteChildren = {
+  AppAnneesYearRoute: AppAnneesYearRoute,
+}
+
+const AppAnneesRouteWithChildren = AppAnneesRoute._addFileChildren(
+  AppAnneesRouteChildren,
+)
+
 interface AppRouteChildren {
-  AppAnneesRoute: typeof AppAnneesRoute
+  AppAnneesRoute: typeof AppAnneesRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAnneesRoute: AppAnneesRoute,
+  AppAnneesRoute: AppAnneesRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }
 
