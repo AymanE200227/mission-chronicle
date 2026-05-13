@@ -18,9 +18,7 @@ export function AppShell() {
               <div className="text-base font-semibold tracking-tight bg-royal bg-clip-text text-transparent">
                 Missio FAR
               </div>
-              <div className="text-[11px] text-muted-foreground">
-                Plateforme de gestion des missions
-              </div>
+              <div className="text-[11px] text-muted-foreground">Centre sportif FAR</div>
             </div>
           </Link>
           <nav className="flex items-center gap-1 text-sm">
@@ -39,7 +37,7 @@ export function AppShell() {
       </main>
       <footer className="border-t border-border/60 bg-background/50 backdrop-blur">
         <div className="mx-auto max-w-7xl px-6 py-6 text-xs text-muted-foreground flex items-center justify-between">
-          <span>© {new Date().getFullYear()} Missio FAR — Plateforme premium</span>
+          <span>© {new Date().getFullYear()} Missio FAR — Centre sportif FAR</span>
           <span className="text-gold">⭐ Royaume du Maroc</span>
         </div>
       </footer>
