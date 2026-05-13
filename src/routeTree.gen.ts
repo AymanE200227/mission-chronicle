@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppYearsRouteImport } from './routes/_app.years'
+import { Route as AppDestinationsRouteImport } from './routes/_app.destinations'
 import { Route as AppAnneesEmployeeIdIndexRouteImport } from './routes/_app.annees.$employeeId.index'
 import { Route as AppAnneesEmployeeIdYearRouteImport } from './routes/_app.annees.$employeeId.$year'
 
@@ -21,6 +23,16 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppYearsRoute = AppYearsRouteImport.update({
+  id: '/years',
+  path: '/years',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDestinationsRoute = AppDestinationsRouteImport.update({
+  id: '/destinations',
+  path: '/destinations',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAnneesEmployeeIdIndexRoute =
@@ -37,10 +49,14 @@ const AppAnneesEmployeeIdYearRoute = AppAnneesEmployeeIdYearRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/destinations': typeof AppDestinationsRoute
+  '/years': typeof AppYearsRoute
   '/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/annees/$employeeId/': typeof AppAnneesEmployeeIdIndexRoute
 }
 export interface FileRoutesByTo {
+  '/destinations': typeof AppDestinationsRoute
+  '/years': typeof AppYearsRoute
   '/': typeof AppIndexRoute
   '/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/annees/$employeeId': typeof AppAnneesEmployeeIdIndexRoute
@@ -48,18 +64,32 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/_app/destinations': typeof AppDestinationsRoute
+  '/_app/years': typeof AppYearsRoute
   '/_app/': typeof AppIndexRoute
   '/_app/annees/$employeeId/$year': typeof AppAnneesEmployeeIdYearRoute
   '/_app/annees/$employeeId/': typeof AppAnneesEmployeeIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/annees/$employeeId/$year' | '/annees/$employeeId/'
+  fullPaths:
+    | '/'
+    | '/destinations'
+    | '/years'
+    | '/annees/$employeeId/$year'
+    | '/annees/$employeeId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/annees/$employeeId/$year' | '/annees/$employeeId'
+  to:
+    | '/destinations'
+    | '/years'
+    | '/'
+    | '/annees/$employeeId/$year'
+    | '/annees/$employeeId'
   id:
     | '__root__'
     | '/_app'
+    | '/_app/destinations'
+    | '/_app/years'
     | '/_app/'
     | '/_app/annees/$employeeId/$year'
     | '/_app/annees/$employeeId/'
@@ -85,6 +115,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/years': {
+      id: '/_app/years'
+      path: '/years'
+      fullPath: '/years'
+      preLoaderRoute: typeof AppYearsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/destinations': {
+      id: '/_app/destinations'
+      path: '/destinations'
+      fullPath: '/destinations'
+      preLoaderRoute: typeof AppDestinationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/annees/$employeeId/': {
       id: '/_app/annees/$employeeId/'
       path: '/annees/$employeeId'
@@ -103,12 +147,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppDestinationsRoute: typeof AppDestinationsRoute
+  AppYearsRoute: typeof AppYearsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppAnneesEmployeeIdYearRoute: typeof AppAnneesEmployeeIdYearRoute
   AppAnneesEmployeeIdIndexRoute: typeof AppAnneesEmployeeIdIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDestinationsRoute: AppDestinationsRoute,
+  AppYearsRoute: AppYearsRoute,
   AppIndexRoute: AppIndexRoute,
   AppAnneesEmployeeIdYearRoute: AppAnneesEmployeeIdYearRoute,
   AppAnneesEmployeeIdIndexRoute: AppAnneesEmployeeIdIndexRoute,
@@ -122,3 +170,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

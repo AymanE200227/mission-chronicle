@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useStore, store, type Mission } from "@/lib/store";
+import { useEmployees, useMissions, useMissionMutations, useDestinations, type Mission } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, MapPin, Pencil, Plus, Trash2, Filter } from "lucide-react";
 
 export const Route = createFileRoute("/_app/annees/$employeeId/$year")({
   component: YearPage,
@@ -13,16 +14,30 @@ export const Route = createFileRoute("/_app/annees/$employeeId/$year")({
 
 function YearPage() {
   const { employeeId, year } = Route.useParams();
-  const employee = useStore((s) => s.employees.find((e) => e.id === employeeId));
-  const missions = useStore((s) => s.missions);
+  const { data: employees = [] } = useEmployees();
+  const { data: missions = [] } = useMissions({ employeeId });
+  const { data: destinations = [] } = useDestinations();
+  const { remove } = useMissionMutations();
+  const [destFilter, setDestFilter] = useState<string>("all");
+
+  const employee = employees.find((e) => e.id === employeeId);
+
+  const yearMissions = useMemo(
+    () => missions.filter((m) => m.date.startsWith(year)).sort((a, b) => a.date.localeCompare(b.date)),
+    [missions, year],
+  );
 
   const rows = useMemo(() => {
-    return missions
-      .filter((m) => m.employeeId === employeeId && m.date.startsWith(year))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }, [missions, employeeId, year]);
+    if (destFilter === "all") return yearMissions;
+    return yearMissions.filter((m) => m.destination_name === destFilter);
+  }, [yearMissions, destFilter]);
 
-  if (!employee) return <div className="py-20 text-center text-muted-foreground">Collaborateur introuvable.</div>;
+  const usedDestinations = useMemo(
+    () => Array.from(new Set(yearMissions.map((m) => m.destination_name).filter(Boolean))).sort(),
+    [yearMissions],
+  );
+
+  if (!employee) return <div className="py-20 text-center text-muted-foreground">Officier introuvable.</div>;
 
   const nomComplet = `${employee.prenom} ${employee.nom}`;
 
@@ -35,42 +50,61 @@ function YearPage() {
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">{nomComplet} · Année</div>
-            <h1 className="text-5xl font-semibold tracking-tight">{year}</h1>
-            <p className="mt-1 text-muted-foreground">{rows.length} mission{rows.length > 1 ? "s" : ""}.</p>
+            <h1 className="text-5xl font-semibold tracking-tight bg-royal bg-clip-text text-transparent">{year}</h1>
+            <p className="mt-1 text-muted-foreground">{rows.length} mission{rows.length > 1 ? "s" : ""}{destFilter !== "all" ? ` · ${destFilter}` : ""}.</p>
           </div>
           <MissionDialog
             employeeId={employeeId}
             year={year}
-            trigger={<Button className="gap-1.5"><Plus className="h-4 w-4" /> Nouvelle mission</Button>}
+            trigger={<Button className="gap-1.5 bg-royal hover:opacity-90"><Plus className="h-4 w-4" /> Nouvelle mission</Button>}
           />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/60 shadow-sm backdrop-blur">
+      <div className="glass-card rounded-2xl p-4 shadow-elegant flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Filter className="h-4 w-4" /> Filtrer par destination
+        </div>
+        <Select value={destFilter} onValueChange={setDestFilter}>
+          <SelectTrigger className="w-[320px] bg-background/80"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les destinations</SelectItem>
+            {usedDestinations.map((d) => (
+              <SelectItem key={d} value={d}>{d}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {destFilter !== "all" && (
+          <Button variant="ghost" size="sm" onClick={() => setDestFilter("all")}>Réinitialiser</Button>
+        )}
+        <div className="ml-auto text-xs text-muted-foreground">{destinations.length} destinations enregistrées</div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl glass-card shadow-elegant">
         <table className="w-full text-sm">
           <thead className="bg-secondary/60 text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-5 py-3 text-left font-medium">Nom complet</th>
               <th className="px-5 py-3 text-left font-medium">Date</th>
               <th className="px-5 py-3 text-left font-medium">Destination</th>
-              <th className="px-5 py-3 text-left font-medium">Objet</th>
+              <th className="px-5 py-3 text-left font-medium">Mission</th>
               <th className="px-5 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t border-border/60 hover:bg-secondary/40 transition-colors">
+            {rows.map((r, i) => (
+              <tr key={r.id} className="border-t border-border/60 hover:bg-accent/40 transition-colors animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
                 <td className="px-5 py-3.5 font-medium">{nomComplet}</td>
                 <td className="px-5 py-3.5 text-muted-foreground tabular-nums">
                   {new Date(r.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
                 </td>
                 <td className="px-5 py-3.5">
                   <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-primary" />
-                    {r.destination}
+                    <MapPin className="h-3.5 w-3.5 text-gold" />
+                    {r.destination_name}
                   </span>
                 </td>
-                <td className="px-5 py-3.5 text-muted-foreground">{r.objet}</td>
+                <td className="px-5 py-3.5 text-muted-foreground">{r.mission}</td>
                 <td className="px-5 py-3.5">
                   <div className="flex justify-end gap-1">
                     <MissionDialog
@@ -83,7 +117,7 @@ function YearPage() {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => store.deleteMission(r.id)}
+                      onClick={() => remove.mutate(r.id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -94,7 +128,7 @@ function YearPage() {
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-5 py-16 text-center text-muted-foreground">
-                  Aucune mission pour {year}.
+                  Aucune mission {destFilter !== "all" ? `vers "${destFilter}" ` : ""}pour {year}.
                 </td>
               </tr>
             )}
@@ -107,42 +141,74 @@ function YearPage() {
 
 function MissionDialog({ employeeId, year, mission, trigger }: { employeeId: string; year: string; mission?: Mission; trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { data: destinations = [] } = useDestinations();
+  const { add, update } = useMissionMutations();
+
   const initial = (): Omit<Mission, "id"> =>
     mission
-      ? { employeeId: mission.employeeId, date: mission.date, destination: mission.destination, objet: mission.objet }
-      : { employeeId, date: `${year}-01-01`, destination: "", objet: "" };
+      ? {
+          employee_id: mission.employee_id,
+          destination_id: mission.destination_id,
+          destination_name: mission.destination_name,
+          mission: mission.mission,
+          date: mission.date,
+        }
+      : {
+          employee_id: employeeId,
+          destination_id: null,
+          destination_name: "",
+          mission: "",
+          date: `${year}-01-01`,
+        };
   const [form, setForm] = useState<Omit<Mission, "id">>(initial);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setForm(initial()); }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="glass-card">
         <DialogHeader>
           <DialogTitle>{mission ? "Modifier la mission" : "Nouvelle mission"}</DialogTitle>
-          <DialogDescription>Renseignez les détails de la mission.</DialogDescription>
+          <DialogDescription>Sélectionnez une destination dans la liste pré-établie.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label className="text-xs">Date</Label>
             <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 col-span-2">
             <Label className="text-xs">Destination</Label>
-            <Input value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} placeholder="Paris, France" />
+            <Select
+              value={form.destination_id ?? ""}
+              onValueChange={(v) => {
+                const d = destinations.find((x) => x.id === v);
+                setForm({ ...form, destination_id: v, destination_name: d?.name ?? "" });
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Choisir une destination" /></SelectTrigger>
+              <SelectContent>
+                {destinations.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground">Manque une destination ? Ajoutez-la depuis l'onglet <Link to="/destinations" className="underline">Destinations</Link>.</p>
           </div>
           <div className="col-span-2 space-y-1.5">
-            <Label className="text-xs">Objet</Label>
-            <Input value={form.objet} onChange={(e) => setForm({ ...form, objet: e.target.value })} placeholder="Conférence, audit, etc." />
+            <Label className="text-xs">Mission</Label>
+            <Input value={form.mission} onChange={(e) => setForm({ ...form, mission: e.target.value })} placeholder="Inspection, formation, audit..." />
           </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
-          <Button onClick={() => {
-            if (!form.destination) return;
-            if (mission) store.updateMission(mission.id, form);
-            else store.addMission(form);
-            setOpen(false);
-          }}>
+          <Button
+            className="bg-royal hover:opacity-90"
+            onClick={async () => {
+              if (!form.destination_name || !form.mission) return;
+              if (mission) await update.mutateAsync({ id: mission.id, ...form });
+              else await add.mutateAsync(form);
+              setOpen(false);
+            }}
+          >
             {mission ? "Enregistrer" : "Ajouter"}
           </Button>
         </DialogFooter>
