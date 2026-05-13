@@ -18,7 +18,6 @@ export function AppShell() {
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <NavLink to="/" label="Accueil" active={location.pathname === "/"} />
-            <NavLink to="/annees" label="Années" active={location.pathname.startsWith("/annees")} />
           </nav>
         </div>
       </header>
