@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useStore } from "@/lib/store";
 
-export const Route = createFileRoute("/_app/annees")({
+export const Route = createFileRoute("/_app/annees/")({
   component: AnneesPage,
 });
 
