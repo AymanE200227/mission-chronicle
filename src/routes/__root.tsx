@@ -76,7 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Plateforme premium pour gérer les collaborateurs et leurs missions par année." },
       { name: "author", content: "Missio" },
       { property: "og:title", content: "Missio — Gestion des missions" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:description", content: "Plateforme premium pour gérer les collaborateurs et leurs missions par année." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
