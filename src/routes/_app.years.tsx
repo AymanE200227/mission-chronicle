@@ -34,8 +34,12 @@ function YearsPage() {
         <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs text-gold-foreground">
           <Calendar className="h-3.5 w-3.5" /> Périodes
         </div>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight"><span className="bg-royal bg-clip-text text-transparent">Années</span></h1>
-        <p className="mt-1 text-muted-foreground">Ajoutez, supprimez ou consultez les années disponibles dans l'application.</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight">
+          <span className="bg-royal bg-clip-text text-transparent">Années</span>
+        </h1>
+        <p className="mt-1 text-muted-foreground">
+          Ajoutez, supprimez ou consultez les années disponibles dans l'application.
+        </p>
       </div>
 
       <div className="glass-card rounded-2xl p-4 shadow-elegant flex flex-wrap items-end gap-3">
@@ -47,13 +51,19 @@ function YearsPage() {
             max={2100}
             value={val}
             onChange={(e) => setVal(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAdd();
+            }}
             placeholder="2027"
             className="w-40 bg-background/80"
           />
         </div>
-        <Button onClick={handleAdd} className="gap-1.5 bg-royal hover:opacity-90"><Plus className="h-4 w-4" /> Ajouter</Button>
-        <div className="ml-auto text-sm text-muted-foreground">{years.length} année{years.length > 1 ? "s" : ""} configurée{years.length > 1 ? "s" : ""}</div>
+        <Button onClick={handleAdd} className="gap-1.5 bg-royal hover:opacity-90">
+          <Plus className="h-4 w-4" /> Ajouter
+        </Button>
+        <div className="ml-auto text-sm text-muted-foreground">
+          {years.length} année{years.length > 1 ? "s" : ""} configurée{years.length > 1 ? "s" : ""}
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl glass-card shadow-elegant">
@@ -67,11 +77,19 @@ function YearsPage() {
           </thead>
           <tbody>
             {years.map((y, i) => (
-              <tr key={y.id} className="border-t border-border/60 hover:bg-accent/40 transition-colors animate-fade-up" style={{ animationDelay: `${i * 25}ms` }}>
+              <tr
+                key={y.id}
+                className="border-t border-border/60 hover:bg-accent/40 transition-colors animate-fade-up"
+                style={{ animationDelay: `${i * 25}ms` }}
+              >
                 <td className="px-5 py-3.5">
-                  <span className="text-2xl font-semibold tracking-tight bg-royal bg-clip-text text-transparent">{y.year}</span>
+                  <span className="text-2xl font-semibold tracking-tight bg-royal bg-clip-text text-transparent">
+                    {y.year}
+                  </span>
                 </td>
-                <td className="px-5 py-3.5 text-muted-foreground tabular-nums">{counts[y.year] ?? 0}</td>
+                <td className="px-5 py-3.5 text-muted-foreground tabular-nums">
+                  {counts[y.year] ?? 0}
+                </td>
                 <td className="px-5 py-3.5">
                   <div className="flex justify-end">
                     <Button
@@ -88,7 +106,11 @@ function YearsPage() {
               </tr>
             ))}
             {years.length === 0 && (
-              <tr><td colSpan={3} className="px-5 py-12 text-center text-muted-foreground">Aucune année. Ajoutez-en une ci-dessus.</td></tr>
+              <tr>
+                <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground">
+                  Aucune année. Ajoutez-en une ci-dessus.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>

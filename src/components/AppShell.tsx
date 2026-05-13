@@ -9,15 +9,27 @@ export function AppShell() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/75 backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-6 py-3">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src={logo} alt="FAR" className="h-11 w-11 object-contain transition-transform group-hover:scale-105 drop-shadow" />
+            <img
+              src={logo}
+              alt="FAR"
+              className="h-11 w-11 object-contain transition-transform group-hover:scale-105 drop-shadow"
+            />
             <div className="leading-tight">
-              <div className="text-base font-semibold tracking-tight bg-royal bg-clip-text text-transparent">Missio FAR</div>
-              <div className="text-[11px] text-muted-foreground">Plateforme de gestion des missions</div>
+              <div className="text-base font-semibold tracking-tight bg-royal bg-clip-text text-transparent">
+                Missio FAR
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                Plateforme de gestion des missions
+              </div>
             </div>
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <NavLink to="/" label="Accueil" active={path === "/"} />
-            <NavLink to="/destinations" label="Destinations" active={path.startsWith("/destinations")} />
+            <NavLink
+              to="/destinations"
+              label="Destinations"
+              active={path.startsWith("/destinations")}
+            />
             <NavLink to="/years" label="Années" active={path.startsWith("/years")} />
           </nav>
         </div>

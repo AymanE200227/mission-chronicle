@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { ArrowLeft, Calendar } from "lucide-react";
-import { useEmployees, useMissions, useYears } from "@/lib/store";
+import { useMembres, useMissions, useYears } from "@/lib/store";
 
 export const Route = createFileRoute("/_app/annees/$employeeId/")({
   component: AnneesPage,
@@ -9,11 +9,11 @@ export const Route = createFileRoute("/_app/annees/$employeeId/")({
 
 function AnneesPage() {
   const { employeeId } = Route.useParams();
-  const { data: employees = [] } = useEmployees();
-  const { data: missions = [] } = useMissions({ employeeId });
+  const { data: membres = [] } = useMembres();
+  const { data: missions = [] } = useMissions({ membreId: employeeId });
   const { data: years = [] } = useYears();
 
-  const employee = employees.find((e) => e.id === employeeId);
+  const membre = membres.find((e) => e.id === employeeId);
 
   const counts = useMemo(() => {
     const map: Record<number, number> = {};
@@ -25,11 +25,13 @@ function AnneesPage() {
     return map;
   }, [missions, years]);
 
-  if (!employee) {
+  if (!membre) {
     return (
       <div className="text-center py-20">
-        <p className="text-muted-foreground">Officier introuvable.</p>
-        <Link to="/" className="text-primary hover:underline mt-2 inline-block">Retour à l'accueil</Link>
+        <p className="text-muted-foreground">Membre introuvable.</p>
+        <Link to="/" className="text-primary hover:underline mt-2 inline-block">
+          Retour à l'accueil
+        </Link>
       </div>
     );
   }
@@ -39,26 +41,35 @@ function AnneesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
         </Link>
         <div className="mt-3 flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-royal text-primary-foreground text-lg font-semibold shadow-elegant">
-            {employee.prenom[0]}{employee.nom[0]}
+            {membre.prenom[0]}
+            {membre.nom[0]}
           </div>
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Officier</div>
-            <h1 className="text-3xl font-semibold tracking-tight">{employee.prenom} {employee.nom}</h1>
-            {employee.poste && <div className="text-sm text-gold mt-0.5">{employee.poste}</div>}
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Membre</div>
+            <h1 className="text-3xl font-semibold tracking-tight">
+              {membre.prenom} {membre.nom}
+            </h1>
           </div>
         </div>
-        <p className="mt-4 text-muted-foreground">Sélectionnez une année pour consulter les missions.</p>
+        <p className="mt-4 text-muted-foreground">
+          Sélectionnez une année pour consulter les missions.
+        </p>
       </div>
 
       {years.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
           <p className="text-muted-foreground">Aucune année configurée.</p>
-          <Link to="/years" className="text-primary hover:underline mt-2 inline-block">Gérer les années →</Link>
+          <Link to="/years" className="text-primary hover:underline mt-2 inline-block">
+            Gérer les années →
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -76,7 +87,9 @@ function AnneesPage() {
                   <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" /> Année
                   </div>
-                  <div className="mt-2 text-5xl font-semibold tracking-tight bg-royal bg-clip-text text-transparent">{y.year}</div>
+                  <div className="mt-2 text-5xl font-semibold tracking-tight bg-royal bg-clip-text text-transparent">
+                    {y.year}
+                  </div>
                   <div className="mt-1 text-sm text-muted-foreground">
                     {counts[y.year] ?? 0} mission{(counts[y.year] ?? 0) > 1 ? "s" : ""}
                   </div>
