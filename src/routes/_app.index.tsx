@@ -35,7 +35,7 @@ function AccueilPage() {
           </div>
           <h1 className="text-4xl font-semibold tracking-tight">Accueil</h1>
           <p className="text-muted-foreground max-w-xl">
-            Gérez vos collaborateurs, recherchez par nom ou prénom, puis explorez les missions par année.
+            Recherchez un collaborateur par nom ou prénom, puis ouvrez son historique de missions par année.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -55,45 +55,30 @@ function AccueilPage() {
               className="pl-9 h-10 bg-background/80"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <EmployeeDialog
-              trigger={
-                <Button size="sm" className="h-10 gap-1.5">
-                  <Plus className="h-4 w-4" /> Ajouter
-                </Button>
-              }
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-10 gap-1.5 group"
-              onClick={() => navigate({ to: "/annees" })}
-            >
-              Voir les années
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Button>
-          </div>
+          <EmployeeDialog
+            trigger={
+              <Button size="sm" className="h-10 gap-1.5">
+                <Plus className="h-4 w-4" /> Ajouter
+              </Button>
+            }
+          />
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border/60">
           <table className="w-full text-sm">
             <thead className="bg-secondary/60 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Nom</th>
-                <th className="px-4 py-3 text-left font-medium">Prénom</th>
-                <th className="px-4 py-3 text-left font-medium">Poste</th>
-                <th className="px-4 py-3 text-left font-medium">Email</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
+                <th className="px-5 py-3 text-left font-medium">Prénom</th>
+                <th className="px-5 py-3 text-left font-medium">Nom</th>
+                <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((e) => (
                 <tr key={e.id} className="border-t border-border/60 hover:bg-secondary/40 transition-colors">
-                  <td className="px-4 py-3 font-medium">{e.nom}</td>
-                  <td className="px-4 py-3">{e.prenom}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.poste}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{e.email}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5 font-medium">{e.prenom}</td>
+                  <td className="px-5 py-3.5">{e.nom}</td>
+                  <td className="px-5 py-3.5">
                     <div className="flex justify-end gap-1">
                       <EmployeeDialog
                         employee={e}
@@ -111,13 +96,21 @@ function AccueilPage() {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
+                      <Button
+                        size="icon"
+                        className="h-8 w-8 group"
+                        onClick={() => navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })}
+                        title="Voir les années"
+                      >
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground">
                     Aucun collaborateur trouvé.
                   </td>
                 </tr>
@@ -126,19 +119,6 @@ function AccueilPage() {
           </table>
         </div>
       </div>
-
-      <button
-        onClick={() => navigate({ to: "/annees" })}
-        className="group flex w-full items-center justify-between rounded-2xl border border-border/60 bg-gradient-to-r from-primary/5 via-card/80 to-card/60 px-6 py-5 text-left shadow-sm transition-all hover:shadow-md hover:border-primary/40"
-      >
-        <div>
-          <div className="text-sm text-muted-foreground">Étape suivante</div>
-          <div className="text-lg font-semibold tracking-tight">Explorer les missions par année</div>
-        </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform group-hover:translate-x-1 group-hover:scale-105">
-          <ArrowRight className="h-5 w-5" />
-        </div>
-      </button>
     </div>
   );
 }
@@ -159,7 +139,10 @@ function EmployeeDialog({ employee, trigger }: { employee?: Employee; trigger: R
   );
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o && employee) setForm(employee); if (o && !employee) setForm({ nom: "", prenom: "", poste: "", email: "" }); }}>
+    <Dialog open={open} onOpenChange={(o) => {
+      setOpen(o);
+      if (o) setForm(employee ?? { nom: "", prenom: "", poste: "", email: "" });
+    }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -167,10 +150,8 @@ function EmployeeDialog({ employee, trigger }: { employee?: Employee; trigger: R
           <DialogDescription>Renseignez les informations ci-dessous.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Nom"><Input value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} /></Field>
           <Field label="Prénom"><Input value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} /></Field>
-          <Field label="Poste" full><Input value={form.poste} onChange={(e) => setForm({ ...form, poste: e.target.value })} /></Field>
-          <Field label="Email" full><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
+          <Field label="Nom"><Input value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} /></Field>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
