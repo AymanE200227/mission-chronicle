@@ -1,4 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useStore } from "@/lib/store";
 
@@ -11,12 +12,15 @@ const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
 function AnneesPage() {
   const { employeeId } = Route.useParams();
   const employee = useStore((s) => s.employees.find((e) => e.id === employeeId));
-  const missions = useStore((s) => s.missions.filter((m) => m.employeeId === employeeId));
+  const allMissions = useStore((s) => s.missions);
 
-  const counts = YEARS.reduce<Record<number, number>>((acc, y) => {
-    acc[y] = missions.filter((m) => m.date.startsWith(String(y))).length;
-    return acc;
-  }, {});
+  const counts = useMemo(() => {
+    const missions = allMissions.filter((m) => m.employeeId === employeeId);
+    return YEARS.reduce<Record<number, number>>((acc, y) => {
+      acc[y] = missions.filter((m) => m.date.startsWith(String(y))).length;
+      return acc;
+    }, {});
+  }, [allMissions, employeeId]);
 
   if (!employee) {
     return (
