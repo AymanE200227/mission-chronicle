@@ -1,19 +1,31 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { useStore } from "@/lib/store";
 
-export const Route = createFileRoute("/_app/annees/")({
+export const Route = createFileRoute("/_app/annees/$employeeId/")({
   component: AnneesPage,
 });
 
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
 
 function AnneesPage() {
-  const missions = useStore((s) => s.missions);
+  const { employeeId } = Route.useParams();
+  const employee = useStore((s) => s.employees.find((e) => e.id === employeeId));
+  const missions = useStore((s) => s.missions.filter((m) => m.employeeId === employeeId));
+
   const counts = YEARS.reduce<Record<number, number>>((acc, y) => {
     acc[y] = missions.filter((m) => m.date.startsWith(String(y))).length;
     return acc;
   }, {});
+
+  if (!employee) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-muted-foreground">Collaborateur introuvable.</p>
+        <Link to="/" className="text-primary hover:underline mt-2 inline-block">Retour à l'accueil</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -21,18 +33,25 @@ function AnneesPage() {
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
         </Link>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight">Sélectionnez une année</h1>
-        <p className="mt-2 text-muted-foreground">Visualisez les missions et destinations par année.</p>
+        <div className="mt-3 flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-lg font-semibold shadow-sm">
+            {employee.prenom[0]}{employee.nom[0]}
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">Collaborateur</div>
+            <h1 className="text-3xl font-semibold tracking-tight">{employee.prenom} {employee.nom}</h1>
+          </div>
+        </div>
+        <p className="mt-4 text-muted-foreground">Sélectionnez une année pour consulter les missions.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {YEARS.map((y, i) => (
+        {YEARS.map((y) => (
           <Link
             key={y}
-            to="/annees/$year"
-            params={{ year: String(y) }}
+            to="/annees/$employeeId/$year"
+            params={{ employeeId, year: String(y) }}
             className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
-            style={{ animationDelay: `${i * 40}ms` }}
           >
             <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl transition-all group-hover:bg-primary/20" />
             <div className="relative flex items-start justify-between">

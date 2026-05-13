@@ -5,45 +5,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 
-export const Route = createFileRoute("/_app/annees/$year")({
+export const Route = createFileRoute("/_app/annees/$employeeId/$year")({
   component: YearPage,
 });
 
 function YearPage() {
-  const { year } = Route.useParams();
-  const employees = useStore((s) => s.employees);
+  const { employeeId, year } = Route.useParams();
+  const employee = useStore((s) => s.employees.find((e) => e.id === employeeId));
   const missions = useStore((s) => s.missions);
 
   const rows = useMemo(() => {
     return missions
-      .filter((m) => m.date.startsWith(year))
-      .map((m) => {
-        const emp = employees.find((e) => e.id === m.employeeId);
-        return { ...m, nomComplet: emp ? `${emp.prenom} ${emp.nom}` : "—", poste: emp?.poste ?? "" };
-      })
+      .filter((m) => m.employeeId === employeeId && m.date.startsWith(year))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [missions, employees, year]);
+  }, [missions, employeeId, year]);
+
+  if (!employee) return <div className="py-20 text-center text-muted-foreground">Collaborateur introuvable.</div>;
+
+  const nomComplet = `${employee.prenom} ${employee.nom}`;
 
   return (
     <div className="space-y-8">
       <div>
-        <Link to="/annees" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link to="/annees/$employeeId" params={{ employeeId }} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Toutes les années
         </Link>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Année</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">{nomComplet} · Année</div>
             <h1 className="text-5xl font-semibold tracking-tight">{year}</h1>
-            <p className="mt-1 text-muted-foreground">{rows.length} mission{rows.length > 1 ? "s" : ""} enregistrée{rows.length > 1 ? "s" : ""}.</p>
+            <p className="mt-1 text-muted-foreground">{rows.length} mission{rows.length > 1 ? "s" : ""}.</p>
           </div>
           <MissionDialog
+            employeeId={employeeId}
             year={year}
-            trigger={
-              <Button className="gap-1.5"><Plus className="h-4 w-4" /> Nouvelle mission</Button>
-            }
+            trigger={<Button className="gap-1.5"><Plus className="h-4 w-4" /> Nouvelle mission</Button>}
           />
         </div>
       </div>
@@ -62,10 +60,7 @@ function YearPage() {
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-t border-border/60 hover:bg-secondary/40 transition-colors">
-                <td className="px-5 py-3.5">
-                  <div className="font-medium">{r.nomComplet}</div>
-                  <div className="text-xs text-muted-foreground">{r.poste}</div>
-                </td>
+                <td className="px-5 py-3.5 font-medium">{nomComplet}</td>
                 <td className="px-5 py-3.5 text-muted-foreground tabular-nums">
                   {new Date(r.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
                 </td>
@@ -79,6 +74,7 @@ function YearPage() {
                 <td className="px-5 py-3.5">
                   <div className="flex justify-end gap-1">
                     <MissionDialog
+                      employeeId={employeeId}
                       year={year}
                       mission={r}
                       trigger={<Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-3.5 w-3.5" /></Button>}
@@ -109,24 +105,16 @@ function YearPage() {
   );
 }
 
-function MissionDialog({ year, mission, trigger }: { year: string; mission?: Mission & { nomComplet?: string }; trigger: React.ReactNode }) {
-  const employees = useStore((s) => s.employees);
+function MissionDialog({ employeeId, year, mission, trigger }: { employeeId: string; year: string; mission?: Mission; trigger: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Omit<Mission, "id">>(
+  const initial = (): Omit<Mission, "id"> =>
     mission
       ? { employeeId: mission.employeeId, date: mission.date, destination: mission.destination, objet: mission.objet }
-      : { employeeId: employees[0]?.id ?? "", date: `${year}-01-01`, destination: "", objet: "" },
-  );
+      : { employeeId, date: `${year}-01-01`, destination: "", objet: "" };
+  const [form, setForm] = useState<Omit<Mission, "id">>(initial);
 
   return (
-    <Dialog open={open} onOpenChange={(o) => {
-      setOpen(o);
-      if (o) {
-        setForm(mission
-          ? { employeeId: mission.employeeId, date: mission.date, destination: mission.destination, objet: mission.objet }
-          : { employeeId: employees[0]?.id ?? "", date: `${year}-01-01`, destination: "", objet: "" });
-      }
-    }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) setForm(initial()); }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -134,17 +122,6 @@ function MissionDialog({ year, mission, trigger }: { year: string; mission?: Mis
           <DialogDescription>Renseignez les détails de la mission.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2 space-y-1.5">
-            <Label className="text-xs">Collaborateur</Label>
-            <Select value={form.employeeId} onValueChange={(v) => setForm({ ...form, employeeId: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {employees.map((e) => (
-                  <SelectItem key={e.id} value={e.id}>{e.prenom} {e.nom}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Date</Label>
             <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
@@ -161,7 +138,7 @@ function MissionDialog({ year, mission, trigger }: { year: string; mission?: Mis
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
           <Button onClick={() => {
-            if (!form.employeeId || !form.destination) return;
+            if (!form.destination) return;
             if (mission) store.updateMission(mission.id, form);
             else store.addMission(form);
             setOpen(false);
