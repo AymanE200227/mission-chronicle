@@ -46,7 +46,7 @@ function DestinationsPage() {
         </div>
         <DestinationDialog
           trigger={
-            <Button className="gap-1.5 bg-royal hover:opacity-90">
+            <Button className="gap-1.5 btn-royal">
               <Plus className="h-4 w-4" /> Nouvelle destination
             </Button>
           }
@@ -167,7 +167,7 @@ function DestinationDialog({
             Annuler
           </Button>
           <Button
-            className="bg-royal hover:opacity-90"
+            className="btn-royal"
             onClick={async () => {
               if (!form.name) return;
               if (destination) await update.mutateAsync({ id: destination.id, ...form });

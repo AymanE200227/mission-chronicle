@@ -58,7 +58,7 @@ function YearsPage() {
             className="w-40 bg-background/80"
           />
         </div>
-        <Button onClick={handleAdd} className="gap-1.5 bg-royal hover:opacity-90">
+        <Button onClick={handleAdd} className="gap-1.5 btn-royal">
           <Plus className="h-4 w-4" /> Ajouter
         </Button>
         <div className="ml-auto text-sm text-muted-foreground">
