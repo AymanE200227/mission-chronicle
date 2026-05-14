@@ -74,7 +74,7 @@ function AccueilPage() {
           </div>
           <MembreDialog
             trigger={
-              <Button size="sm" className="h-10 gap-1.5 bg-royal hover:opacity-90">
+              <Button size="sm" className="h-10 gap-1.5 btn-royal">
                 <Plus className="h-4 w-4" /> Nouveau membre
               </Button>
             }
@@ -119,7 +119,7 @@ function AccueilPage() {
                       </Button>
                       <Button
                         size="icon"
-                        className="h-8 w-8 group bg-royal hover:opacity-90"
+                        className="h-8 w-8 group btn-royal"
                         onClick={() =>
                           navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })
                         }
@@ -209,7 +209,7 @@ function MembreDialog({ membre, trigger }: { membre?: Membre; trigger: React.Rea
             Annuler
           </Button>
           <Button
-            className="bg-royal hover:opacity-90"
+            className="btn-royal"
             onClick={async () => {
               if (!form.nom || !form.prenom) return;
               if (membre) await update.mutateAsync({ id: membre.id, ...form });

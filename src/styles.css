@@ -160,4 +160,96 @@
     background-size: 200% 100%;
     animation: shimmer 2.5s infinite;
   }
+
+  /* === Floating orbs === */
+  @keyframes float-slow {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(40px, 30px) scale(1.08); }
+  }
+  @keyframes float-slower {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, -25px) scale(1.12); }
+  }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.55; transform: translate(-50%, 0) scale(1); }
+    50% { opacity: 0.85; transform: translate(-50%, 0) scale(1.15); }
+  }
+  .animate-float-slow { animation: float-slow 18s ease-in-out infinite; }
+  .animate-float-slower { animation: float-slower 24s ease-in-out infinite; }
+  .animate-pulse-glow { animation: pulse-glow 9s ease-in-out infinite; }
+
+  /* === Premium royal button === */
+  .btn-royal {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-image: var(--gradient-royal);
+    color: var(--primary-foreground);
+    box-shadow: var(--shadow-elegant), inset 0 1px 0 oklch(1 0 0 / 0.18);
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.3s ease, filter 0.3s ease;
+  }
+  .btn-royal::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 30%, oklch(1 0 0 / 0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 1;
+  }
+  .btn-royal::after {
+    content: "";
+    position: absolute; inset: -2px;
+    border-radius: inherit;
+    background: var(--gradient-gold);
+    opacity: 0; z-index: -1;
+    filter: blur(14px);
+    transition: opacity 0.4s ease;
+  }
+  .btn-royal:hover { transform: translateY(-1px); filter: brightness(1.06); }
+  .btn-royal:hover::before { transform: translateX(120%); }
+  .btn-royal:hover::after { opacity: 0.55; }
+  .btn-royal:active { transform: translateY(0); }
+  .btn-royal > * { position: relative; z-index: 2; }
+
+  /* === Animated underline link === */
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 8px; right: 8px; bottom: 4px;
+    height: 2px;
+    background: var(--gradient-gold);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-underline:hover::after { transform: scaleX(1); transform-origin: left; }
+
+  /* === Card hover lift === */
+  .card-lift {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.4s ease, border-color 0.3s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px -20px oklch(0.30 0.10 150 / 0.35),
+                0 0 0 1px color-mix(in oklab, var(--gold) 35%, transparent);
+  }
+
+  /* === Subtle gold ring on focus === */
+  .ring-gold-focus:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold) 40%, transparent);
+  }
+
+  /* === Logo spin on hover === */
+  @keyframes crest-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .crest-spin:hover { animation: crest-spin 8s linear infinite; }
 }

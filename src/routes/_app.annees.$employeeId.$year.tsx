@@ -90,7 +90,7 @@ function YearPage() {
             membreId={employeeId}
             year={year}
             trigger={
-              <Button className="gap-1.5 bg-royal hover:opacity-90">
+              <Button className="gap-1.5 btn-royal">
                 <Plus className="h-4 w-4" /> Nouvelle mission
               </Button>
             }
@@ -296,7 +296,7 @@ function MissionDialog({
             Annuler
           </Button>
           <Button
-            className="bg-royal hover:opacity-90"
+            className="btn-royal"
             onClick={async () => {
               if (!form.destination_name || !form.mission) return;
               if (mission) await update.mutateAsync({ id: mission.id, ...form });
