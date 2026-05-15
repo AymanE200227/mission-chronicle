@@ -165,3 +165,54 @@ export const deleteMission = createServerFn({ method: "POST" })
     const d = await db();
     d.prepare("DELETE FROM missions WHERE id = ?").run(data.id);
   });
+
+// --- Missions by destination ---
+
+export type MissionWithMembre = Mission & { membre_nom: string; membre_prenom: string };
+
+export const fetchMissionsByDestination = createServerFn({ method: "GET" })
+  .inputValidator((data: { destinationName: string }) => data)
+  .handler(async ({ data }) => {
+    const d = await db();
+    return d
+      .prepare(
+        `SELECT m.id, m.membre_id, m.destination_id, m.destination_name, m.mission, m.date,
+                mb.nom AS membre_nom, mb.prenom AS membre_prenom
+         FROM missions m
+         JOIN membres mb ON mb.id = m.membre_id
+         WHERE m.destination_name = ?
+         ORDER BY m.date DESC`,
+      )
+      .all(data.destinationName) as MissionWithMembre[];
+  });
+
+// --- Random available membre (no mission for given destination) ---
+
+export const fetchAvailableMembres = createServerFn({ method: "GET" })
+  .inputValidator((data: { destinationName: string; excludeIds?: string[] }) => data)
+  .handler(async ({ data }) => {
+    const d = await db();
+    const excludePlaceholders =
+      data.excludeIds && data.excludeIds.length > 0
+        ? data.excludeIds.map(() => "?").join(",")
+        : null;
+
+    const query = excludePlaceholders
+      ? `SELECT id, nom, prenom FROM membres
+         WHERE id NOT IN (
+           SELECT DISTINCT membre_id FROM missions WHERE destination_name = ?
+         )
+         AND id NOT IN (${excludePlaceholders})
+         ORDER BY nom`
+      : `SELECT id, nom, prenom FROM membres
+         WHERE id NOT IN (
+           SELECT DISTINCT membre_id FROM missions WHERE destination_name = ?
+         )
+         ORDER BY nom`;
+
+    const params = excludePlaceholders
+      ? [data.destinationName, ...data.excludeIds!]
+      : [data.destinationName];
+
+    return d.prepare(query).all(...params) as Membre[];
+  });

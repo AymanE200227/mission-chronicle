@@ -28,6 +28,7 @@ export function AppShell() {
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <NavLink to="/" label="Accueil" active={path === "/"} />
+            <NavLink to="/ecoles" label="Écoles" active={path.startsWith("/ecoles")} />
             <NavLink
               to="/destinations"
               label="Destinations"
