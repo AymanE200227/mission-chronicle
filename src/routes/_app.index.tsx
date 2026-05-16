@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ArrowRight, Pencil, Plus, Search, Trash2, Users, Briefcase } from "lucide-react";
+import { MapPin, Pencil, Plus, Search, Trash2, Users, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/_app/")({
   component: AccueilPage,
@@ -26,13 +26,31 @@ function AccueilPage() {
   const [q, setQ] = useState("");
   const navigate = useNavigate();
 
+  const membreMissions = useMemo(() => {
+    const map: Record<string, { destinations: string[]; lastDate: string }> = {};
+    for (const m of missions) {
+      if (!map[m.membre_id]) {
+        map[m.membre_id] = { destinations: [], lastDate: m.date };
+      }
+      if (m.destination_name && !map[m.membre_id].destinations.includes(m.destination_name)) {
+        map[m.membre_id].destinations.push(m.destination_name);
+      }
+      if (m.date > map[m.membre_id].lastDate) {
+        map[m.membre_id].lastDate = m.date;
+      }
+    }
+    return map;
+  }, [missions]);
+
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return membres;
-    return membres.filter(
-      (e) => e.nom.toLowerCase().includes(t) || e.prenom.toLowerCase().includes(t),
-    );
-  }, [membres, q]);
+    return membres.filter((e) => {
+      const nameMatch = e.nom.toLowerCase().includes(t) || e.prenom.toLowerCase().includes(t);
+      const destMatch = membreMissions[e.id]?.destinations.some((d) => d.toLowerCase().includes(t));
+      return nameMatch || destMatch;
+    });
+  }, [membres, q, membreMissions]);
 
   return (
     <div className="space-y-8">
@@ -46,8 +64,7 @@ function AccueilPage() {
             <span className="bg-royal bg-clip-text text-transparent">Accueil</span>
           </h1>
           <p className="text-muted-foreground max-w-xl">
-            Recherchez un membre par nom ou prénom, puis ouvrez son historique de missions par
-            année.
+            Recherchez un membre par nom, prénom ou destination, puis cliquez pour voir son profil.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -68,7 +85,7 @@ function AccueilPage() {
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Rechercher par nom ou prénom..."
+              placeholder="Rechercher par nom, prénom ou destination..."
               className="pl-9 h-10 bg-background/80"
             />
           </div>
@@ -87,53 +104,80 @@ function AccueilPage() {
               <tr>
                 <th className="px-5 py-3 text-left font-medium">Prénom</th>
                 <th className="px-5 py-3 text-left font-medium">Nom</th>
+                <th className="px-5 py-3 text-left font-medium">Destinations</th>
+                <th className="px-5 py-3 text-left font-medium">Dernière mission</th>
                 <th className="px-5 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((e, i) => (
-                <tr
-                  key={e.id}
-                  className="border-t border-border/60 hover:bg-accent/40 transition-colors animate-fade-up"
-                  style={{ animationDelay: `${i * 30}ms` }}
-                >
-                  <td className="px-5 py-3.5 font-medium">{e.prenom}</td>
-                  <td className="px-5 py-3.5">{e.nom}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex justify-end gap-1">
-                      <MembreDialog
-                        membre={e}
-                        trigger={
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        }
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => remove.mutate(e.id)}
+              {filtered.map((e, i) => {
+                const info = membreMissions[e.id];
+                return (
+                  <tr
+                    key={e.id}
+                    className="border-t border-border/60 hover:bg-accent/40 transition-colors animate-fade-up cursor-pointer"
+                    style={{ animationDelay: `${i * 30}ms` }}
+                    onClick={() =>
+                      navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })
+                    }
+                  >
+                    <td className="px-5 py-3.5 font-medium">{e.prenom}</td>
+                    <td className="px-5 py-3.5">{e.nom}</td>
+                    <td className="px-5 py-3.5">
+                      {info?.destinations.length ? (
+                        <div className="flex flex-wrap gap-1">
+                          {info.destinations.map((d) => (
+                            <span
+                              key={d}
+                              className="inline-flex items-center gap-1 rounded-full bg-secondary/80 px-2 py-0.5 text-xs"
+                            >
+                              <MapPin className="h-3 w-3 text-gold" />
+                              {d}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5 text-muted-foreground tabular-nums">
+                      {info?.lastDate
+                        ? new Date(info.lastDate).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "—"}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div
+                        className="flex justify-end gap-1"
+                        onClick={(ev) => ev.stopPropagation()}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        className="h-8 w-8 group btn-royal"
-                        onClick={() =>
-                          navigate({ to: "/annees/$employeeId", params: { employeeId: e.id } })
-                        }
-                        title="Voir les années"
-                      >
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        <MembreDialog
+                          membre={e}
+                          trigger={
+                            <Button size="icon" variant="ghost" className="h-8 w-8">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => remove.mutate(e.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-5 py-12 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
                     Aucun membre trouvé.
                   </td>
                 </tr>
