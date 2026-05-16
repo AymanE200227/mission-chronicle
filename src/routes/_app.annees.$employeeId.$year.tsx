@@ -71,7 +71,7 @@ function YearPage() {
           params={{ employeeId }}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" /> Toutes les années
+          <ArrowLeft className="h-4 w-4" /> Profil de {nomComplet}
         </Link>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -15,10 +15,12 @@ import {
   createMission,
   updateMission,
   deleteMission,
+  fetchMissionsByDestination,
+  fetchAvailableMembres,
 } from "./api";
 import type { Membre, Destination, Mission } from "./api";
 
-export type { Membre, Destination, YearRow, Mission } from "./api";
+export type { Membre, Destination, YearRow, Mission, MissionWithMembre } from "./api";
 
 // --- Membres ---
 export function useMembres() {
@@ -125,4 +127,22 @@ export function useMissionMutations() {
       onSuccess: inv,
     }),
   };
+}
+
+// --- Missions by destination ---
+export function useMissionsByDestination(destinationName: string) {
+  return useQuery({
+    queryKey: ["missions", "byDestination", destinationName],
+    queryFn: () => fetchMissionsByDestination({ data: { destinationName } }),
+    enabled: !!destinationName,
+  });
+}
+
+// --- Available membres (no mission at a given destination) ---
+export function useAvailableMembres(destinationName: string, excludeIds?: string[]) {
+  return useQuery({
+    queryKey: ["membres", "available", destinationName, excludeIds],
+    queryFn: () => fetchAvailableMembres({ data: { destinationName, excludeIds } }),
+    enabled: !!destinationName,
+  });
 }
